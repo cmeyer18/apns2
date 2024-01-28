@@ -7,6 +7,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Create a release
+        id: release
+        if: github.ref == 'refs/heads/master'
+        uses: rymndhng/release-on-push-action@v0.28.0
+        with:
+          bump_version_scheme: minor
+          tag_prefix: v
+
       - uses: actions/checkout@v4.1.1
 
       - name: Set up Go
