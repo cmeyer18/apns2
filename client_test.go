@@ -1,4 +1,4 @@
-package apns2_test
+package apns2
 
 import (
 	"context"
@@ -18,7 +18,6 @@ import (
 
 	"golang.org/x/net/http2"
 
-	"github.com/cmeyer18/apns2"
 	"github.com/cmeyer18/apns2/certificate"
 	"github.com/cmeyer18/apns2/token"
 	"github.com/stretchr/testify/assert"
@@ -26,8 +25,8 @@ import (
 
 // Mocks
 
-func mockNotification() *apns2.Notification {
-	n := &apns2.Notification{}
+func mockNotification() *Notification {
+	n := &Notification{}
 	n.DeviceToken = "11aa01229f15f0f0c52029d8cf8cd0aeaf2365fe4cebc4af26cd6d76b7919ef7"
 	n.Payload = []byte(`{"aps":{"alert":"Hello!"}}`)
 	return n
@@ -43,8 +42,8 @@ func mockCert() tls.Certificate {
 	return tls.Certificate{}
 }
 
-func mockClient(url string) *apns2.Client {
-	return &apns2.Client{Host: url, HTTPClient: http.DefaultClient}
+func mockClient(url string) *Client {
+	return &Client{Host: url, HTTPClient: http.DefaultClient}
 }
 
 type mockTransport struct {
@@ -59,32 +58,32 @@ func (c *mockTransport) CloseIdleConnections() {
 // Unit Tests
 
 func TestClientDefaultHost(t *testing.T) {
-	client := apns2.NewClient(mockCert())
+	client := NewClient(mockCert())
 	assert.Equal(t, "https://api.sandbox.push.apple.com", client.Host)
 }
 
 func TestTokenDefaultHost(t *testing.T) {
-	client := apns2.NewTokenClient(mockToken()).Development()
+	client := NewTokenClient(mockToken()).Development()
 	assert.Equal(t, "https://api.sandbox.push.apple.com", client.Host)
 }
 
 func TestClientDevelopmentHost(t *testing.T) {
-	client := apns2.NewClient(mockCert()).Development()
+	client := NewClient(mockCert()).Development()
 	assert.Equal(t, "https://api.sandbox.push.apple.com", client.Host)
 }
 
 func TestTokenClientDevelopmentHost(t *testing.T) {
-	client := apns2.NewTokenClient(mockToken()).Development()
+	client := NewTokenClient(mockToken()).Development()
 	assert.Equal(t, "https://api.sandbox.push.apple.com", client.Host)
 }
 
 func TestClientProductionHost(t *testing.T) {
-	client := apns2.NewClient(mockCert()).Production()
+	client := NewClient(mockCert()).Production()
 	assert.Equal(t, "https://api.push.apple.com", client.Host)
 }
 
 func TestTokenClientProductionHost(t *testing.T) {
-	client := apns2.NewTokenClient(mockToken()).Production()
+	client := NewTokenClient(mockToken()).Production()
 	assert.Equal(t, "https://api.push.apple.com", client.Host)
 }
 
@@ -105,7 +104,7 @@ func TestClientBadTransportError(t *testing.T) {
 }
 
 func TestClientBadDeviceToken(t *testing.T) {
-	n := &apns2.Notification{}
+	n := &Notification{}
 	n.DeviceToken = "DGw\aOoD+HwSroh#Ug]%xzd]"
 	n.Payload = []byte(`{"aps":{"alert":"Hello!"}}`)
 	res, err := mockClient("https://api.push.apple.com").Push(n)
@@ -115,20 +114,20 @@ func TestClientBadDeviceToken(t *testing.T) {
 
 func TestClientNameToCertificate(t *testing.T) {
 	crt, _ := certificate.FromP12File("certificate/_fixtures/certificate-valid.p12", "")
-	client := apns2.NewClient(crt)
+	client := NewClient(crt)
 	name := client.HTTPClient.Transport.(*http2.Transport).TLSClientConfig.NameToCertificate
 	assert.Len(t, name, 1)
 
 	certificate2 := tls.Certificate{}
-	client2 := apns2.NewClient(certificate2)
+	client2 := NewClient(certificate2)
 	name2 := client2.HTTPClient.Transport.(*http2.Transport).TLSClientConfig.NameToCertificate
 	assert.Len(t, name2, 0)
 }
 
 func TestDialTLSTimeout(t *testing.T) {
-	apns2.TLSDialTimeout = 10 * time.Millisecond
+	TLSDialTimeout = 10 * time.Millisecond
 	crt, _ := certificate.FromP12File("certificate/_fixtures/certificate-valid.p12", "")
-	client := apns2.NewClient(crt)
+	client := NewClient(crt)
 	dialTLS := client.HTTPClient.Transport.(*http2.Transport).DialTLS
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -247,7 +246,7 @@ func TestHeaders(t *testing.T) {
 
 func TestPushTypeAlertHeader(t *testing.T) {
 	n := mockNotification()
-	n.PushType = apns2.PushTypeAlert
+	n.PushType = PushTypeAlert
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "alert", r.Header.Get("apns-push-type"))
 	}))
@@ -258,7 +257,7 @@ func TestPushTypeAlertHeader(t *testing.T) {
 
 func TestPushTypeBackgroundHeader(t *testing.T) {
 	n := mockNotification()
-	n.PushType = apns2.PushTypeBackground
+	n.PushType = PushTypeBackground
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "background", r.Header.Get("apns-push-type"))
 	}))
@@ -269,7 +268,7 @@ func TestPushTypeBackgroundHeader(t *testing.T) {
 
 func TestPushTypeLocationHeader(t *testing.T) {
 	n := mockNotification()
-	n.PushType = apns2.PushTypeLocation
+	n.PushType = PushTypeLocation
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "location", r.Header.Get("apns-push-type"))
 	}))
@@ -280,7 +279,7 @@ func TestPushTypeLocationHeader(t *testing.T) {
 
 func TestPushTypeVOIPHeader(t *testing.T) {
 	n := mockNotification()
-	n.PushType = apns2.PushTypeVOIP
+	n.PushType = PushTypeVOIP
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "voip", r.Header.Get("apns-push-type"))
 	}))
@@ -291,7 +290,7 @@ func TestPushTypeVOIPHeader(t *testing.T) {
 
 func TestPushTypeComplicationHeader(t *testing.T) {
 	n := mockNotification()
-	n.PushType = apns2.PushTypeComplication
+	n.PushType = PushTypeComplication
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "complication", r.Header.Get("apns-push-type"))
 	}))
@@ -302,7 +301,7 @@ func TestPushTypeComplicationHeader(t *testing.T) {
 
 func TestPushTypeFileProviderHeader(t *testing.T) {
 	n := mockNotification()
-	n.PushType = apns2.PushTypeFileProvider
+	n.PushType = PushTypeFileProvider
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "fileprovider", r.Header.Get("apns-push-type"))
 	}))
@@ -313,7 +312,7 @@ func TestPushTypeFileProviderHeader(t *testing.T) {
 
 func TestPushTypeMDMHeader(t *testing.T) {
 	n := mockNotification()
-	n.PushType = apns2.PushTypeMDM
+	n.PushType = PushTypeMDM
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "mdm", r.Header.Get("apns-push-type"))
 	}))
@@ -386,7 +385,7 @@ func Test400BadRequestPayloadEmptyResponse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 400, res.StatusCode)
 	assert.Equal(t, apnsID, res.ApnsID)
-	assert.Equal(t, apns2.ReasonPayloadEmpty, res.Reason)
+	assert.Equal(t, ReasonPayloadEmpty, res.Reason)
 	assert.Equal(t, false, res.Sent())
 }
 
@@ -404,7 +403,7 @@ func Test410UnregisteredResponse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 410, res.StatusCode)
 	assert.Equal(t, apnsID, res.ApnsID)
-	assert.Equal(t, apns2.ReasonUnregistered, res.Reason)
+	assert.Equal(t, ReasonUnregistered, res.Reason)
 	assert.Equal(t, int64(1458114061260)/1000, res.Timestamp.Unix())
 	assert.Equal(t, false, res.Sent())
 }

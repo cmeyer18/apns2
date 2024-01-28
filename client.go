@@ -48,9 +48,9 @@ var (
 	TLSDialTimeout = 20 * time.Second
 )
 
-// DialTLS is the default dial function for creating TLS connections for
+// DialTLSContext is the default dial function for creating TLS connections for
 // non-proxied HTTPS requests.
-var DialTLS = func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+var DialTLSContext = func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
 	dialer := &net.Dialer{
 		Timeout:   TLSDialTimeout,
 		KeepAlive: TCPKeepAlive,
@@ -97,7 +97,7 @@ func NewClient(certificate tls.Certificate) *Client {
 	}
 	transport := &http2.Transport{
 		TLSClientConfig: tlsConfig,
-		DialTLS:         DialTLS,
+		DialTLSContext:  DialTLSContext,
 		ReadIdleTimeout: ReadIdleTimeout,
 	}
 	return &Client{
@@ -120,7 +120,7 @@ func NewClient(certificate tls.Certificate) *Client {
 // connection and disconnection as a denial-of-service attack.
 func NewTokenClient(token *token.Token) *Client {
 	transport := &http2.Transport{
-		DialTLS:         DialTLS,
+		DialTLSContext:  DialTLSContext,
 		ReadIdleTimeout: ReadIdleTimeout,
 	}
 	return &Client{

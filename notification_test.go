@@ -1,9 +1,8 @@
-package apns2_test
+package apns2
 
 import (
 	"testing"
 
-	"github.com/cmeyer18/apns2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +19,7 @@ func TestMarshalJSON(t *testing.T) {
 		}{"b"}, []byte(`{"a":"b"}`), nil},
 	}
 
-	notification := &apns2.Notification{}
+	notification := &Notification{}
 
 	for _, scenario := range scenarios {
 		notification.Payload = scenario.in

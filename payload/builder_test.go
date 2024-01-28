@@ -1,4 +1,4 @@
-package payload_test
+package payload
 
 import (
 	"encoding/json"

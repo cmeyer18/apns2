@@ -5,11 +5,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
-	"io/ioutil"
+	"os"
 	"sync"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -40,7 +40,7 @@ type Token struct {
 // AuthKeyFromFile loads a .p8 certificate from a local file and returns a
 // *ecdsa.PrivateKey.
 func AuthKeyFromFile(filename string) (*ecdsa.PrivateKey, error) {
-	bytes, err := ioutil.ReadFile(filename)
+	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
