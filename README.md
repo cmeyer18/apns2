@@ -1,37 +1,5 @@
 # APNS/2
 
-APNS/2 is a go package designed for simple, flexible and fast Apple Push Notifications on iOS, OSX and Safari using the new HTTP/2 Push provider API.
-
-[![Build Status](https://github.com/sideshow/apns2/actions/workflows/tests.yml/badge.svg)](https://github.com/sideshow/apns2/actions/workflows/tests.yml) [![Coverage Status](https://coveralls.io/repos/sideshow/apns2/badge.svg?branch=master&service=github)](https://coveralls.io/github/sideshow/apns2?branch=master) [![GoDoc](https://godoc.org/github.com/sideshow/apns2?status.svg)](https://godoc.org/github.com/sideshow/apns2)
-
-## Features
-
-- Uses new Apple APNs HTTP/2 connection
-- Fast - See [notes on speed](https://github.com/sideshow/apns2/wiki/APNS-HTTP-2-Push-Speed)
-- Works with go 1.7 and later
-- Supports new Apple Token Based Authentication (JWT)
-- Supports new iOS 10 features such as Collapse IDs, Subtitles and Mutable Notifications
-- Supports new iOS 15 features interruptionLevel and relevanceScore
-- Supports persistent connections to APNs
-- Supports VoIP/PushKit notifications (iOS 8 and later)
-- Modular & easy to use
-- Tested and working in APNs production environment
-
-## Install
-
-- Make sure you have [Go](https://golang.org/doc/install) installed and have set your [GOPATH](https://golang.org/doc/code.html#GOPATH).
-- Install apns2:
-
-```sh
-go get -u github.com/sideshow/apns2
-```
-
-If you are running the test suite you will also need to install testify:
-
-```sh
-go get -u github.com/stretchr/testify
-```
-
 ## Example
 
 ```go
@@ -41,8 +9,8 @@ import (
   "log"
   "fmt"
 
-  "github.com/sideshow/apns2"
-  "github.com/sideshow/apns2/certificate"
+  "github.com/cmeyer18/apns2"
+  "github.com/cmeyer18/apns2/certificate"
 )
 
 func main() {
@@ -170,37 +138,6 @@ information on contexts.
 ctx, cancel = context.WithTimeout(context.Background(), 10 * time.Second)
 res, err := client.PushWithContext(ctx, notification)
 defer cancel()
-```
-
-## Speed & Performance
-
-Also see the wiki page on [APNS HTTP 2 Push Speed](https://github.com/sideshow/apns2/wiki/APNS-HTTP-2-Push-Speed).
-
-For best performance, you should hold on to an `apns2.Client` instance and not re-create it every push. The underlying TLS connection itself can take a few seconds to connect and negotiate, so if you are setting up an `apns2.Client` and tearing it down every push, then this will greatly affect performance. (Apple suggest keeping the connection open all the time).
-
-You should also limit the amount of `apns2.Client` instances. The underlying transport has a http connection pool itself, so a single client instance will be enough for most users (One instance can potentially do 4,000+ pushes per second). If you need more than this then one instance per CPU core is a good starting point.
-
-Speed is greatly affected by the location of your server and the quality of your network connection. If you're just testing locally, behind a proxy or if your server is outside USA then you're not going to get great performance. With a good server located in AWS, you should be able to get [decent throughput](https://github.com/sideshow/apns2/wiki/APNS-HTTP-2-Push-Speed).
-
-## Command line tool
-
-APNS/2 has a command line tool that can be installed with `go get github.com/sideshow/apns2/apns2`. Usage:
-
-```
-apns2 --help
-usage: apns2 --certificate-path=CERTIFICATE-PATH --topic=TOPIC [<flags>]
-
-Listens to STDIN to send notifications and writes APNS response code and reason to STDOUT.
-
-The expected format is: <DeviceToken> <APNS Payload>
-Example: aff0c63d9eaa63ad161bafee732d5bc2c31f66d552054718ff19ce314371e5d0 {"aps": {"alert": "hi"}}
-Flags:
-      --help               Show context-sensitive help (also try --help-long and --help-man).
-  -c, --certificate-path=CERTIFICATE-PATH
-                           Path to certificate file.
-  -t, --topic=TOPIC        The topic of the remote notification, which is typically the bundle ID for your app
-  -m, --mode="production"  APNS server to send notifications to. `production` or `development`. Defaults to `production`
-      --version            Show application version.
 ```
 
 ## License
