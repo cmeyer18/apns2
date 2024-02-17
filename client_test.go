@@ -8,7 +8,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -128,7 +128,7 @@ func TestDialTLSTimeout(t *testing.T) {
 	TLSDialTimeout = 10 * time.Millisecond
 	crt, _ := certificate.FromP12File("certificate/_fixtures/certificate-valid.p12", "")
 	client := NewClient(crt)
-	dialTLS := client.HTTPClient.Transport.(*http2.Transport).DialTLS
+	dialTLSContext := client.HTTPClient.Transport.(*http2.Transport).DialTLSContext
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -136,7 +136,7 @@ func TestDialTLSTimeout(t *testing.T) {
 	address := listener.Addr().String()
 	defer listener.Close()
 	var e error
-	if _, e = dialTLS("tcp", address, nil); e == nil {
+	if _, e = dialTLSContext(context.TODO(), "tcp", address, nil); e == nil {
 		t.Fatal("Dial completed successfully")
 	}
 	// Go 1.7.x and later will return a context deadline exceeded error
@@ -339,7 +339,7 @@ func TestAuthorizationHeader(t *testing.T) {
 func TestPayload(t *testing.T) {
 	n := mockNotification()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, n.Payload, body)
 	}))
