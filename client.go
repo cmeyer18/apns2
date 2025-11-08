@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/sideshow/apns2/token"
+	"github.com/cmeyer18/apns2/token"
 	"golang.org/x/net/http2"
 )
 
